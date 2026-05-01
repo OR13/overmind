@@ -1,0 +1,33 @@
+[project]
+name = "overmind"
+version = "0.0.0"
+description = "Personal agentic coordination workspace"
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+dev-dependencies = [
+  "ruff>=0.7",
+  "pyright>=1.1.380",
+  "pytest>=8",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = [".git-ignored", "projects", ".venv", "node_modules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pyright]
+include = ["tools"]
+exclude = [".git-ignored", "projects", ".venv", "node_modules", "**/__pycache__"]
+typeCheckingMode = "strict"
+reportMissingImports = "error"
+
+[tool.pytest.ini_options]
+testpaths = ["tools"]
+python_files = ["test_*.py", "*_test.py"]

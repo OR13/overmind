@@ -36,9 +36,7 @@ structure: where things live and what gets committed.
 - Reference the directory in the subject when useful:
   `knowledge: add note on X`, `projects: add submodule Y`.
 
-## What not to do
+## Agents
 
-- Do not commit secrets, API keys, or personal credentials.
-- Do not commit large binaries or model weights — use `.git-ignored/`.
-- Do not check files into `projects/` without an explicit reason; the
-  default is to keep them out of this repo's history.
+- **somnabulist**: An agent that uses local AI models within VS Code to perform tasks autonomously while the user is inactive or asleep.
+

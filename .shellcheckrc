@@ -1,0 +1,2 @@
+# Resolve `source` and `.` relative to the script being checked.
+external-sources=true

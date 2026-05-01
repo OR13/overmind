@@ -1,0 +1,1 @@
+description: An agent that uses local AI models within VS Code to perform tasks autonomously while the user is inactive or asleep. It is designed to execute complex, multi-step tasks without direct user intervention.

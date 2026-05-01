@@ -20,3 +20,18 @@ Thumbs.db
 # - Or use `git add -f <path>` / per-path `!` exceptions to track in-tree work.
 projects/*
 !projects/README.md
+
+# JS / Bun
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.pyright/
+
+# Build outputs
+dist/
+build/

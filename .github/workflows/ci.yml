@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up shfmt
+        uses: mfinelli/setup-shfmt@v3
+
+      - name: Install JS deps
+        run: bun install --frozen-lockfile
+
+      - name: Install Python deps
+        run: uv sync
+
+      - name: Run all gates
+        run: tools/check.sh
