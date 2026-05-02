@@ -1,1 +1,0 @@
-../../.agents/skills/social-config/SKILL.md

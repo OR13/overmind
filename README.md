@@ -37,8 +37,11 @@ it yours.
   It does not change between sessions.
 - **.agents/skills/** holds vendor-neutral [Agent Skills][agentskills]
   in the open-standard format (`<name>/SKILL.md` per skill). Gemini CLI
-  auto-discovers via this path; Claude Code finds them through
-  `.claude/commands/*.md` symlinks pointing at each `SKILL.md`.
+  auto-discovers via this path. Claude Code finds them through a single
+  directory symlink — `.claude/skills` → `../.agents/skills` — since
+  Claude Code natively reads `.claude/skills/<name>/SKILL.md`, the same
+  layout as the open standard. One source of truth, no per-skill
+  bridge files.
 - **memory/** is the *evolutionary* layer.
   - Top-level `memory/*.md` is **public** and concatenated onto the
     system prompt every session — workspace conventions worth surfacing

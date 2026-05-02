@@ -1,1 +1,0 @@
-../../.agents/skills/filter-follows/SKILL.md

@@ -13,8 +13,11 @@ structure: where things live and what gets committed.
 ## Navigation
 
 - `.agents/skills/` — vendor-neutral [Agent Skills](https://agentskills.io)
-  in the open-standard format (`<name>/SKILL.md` per skill). Auto-discovered
-  by Gemini CLI; surfaced to Claude Code via `.claude/commands/` symlinks.
+  in the open-standard format (`<name>/SKILL.md` per skill).
+  Auto-discovered by Gemini CLI. Claude Code finds them via a single
+  directory symlink: `.claude/skills` → `../.agents/skills` (Claude Code
+  natively reads `.claude/skills/<name>/SKILL.md`, which matches the
+  open-standard layout exactly).
 - `memory/` — evolutionary context.
   - Top-level `memory/*.md` is **public** and concatenated into the
     system prompt on every session (active conventions worth surfacing

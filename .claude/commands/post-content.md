@@ -1,1 +1,0 @@
-../../.agents/skills/post-content/SKILL.md
