@@ -22,18 +22,13 @@ it yours.
 
 ```
 .
-├── AGENTS.md       # static entry contract; lists skills + operators
-├── README.md       # this file
-├── .agents/skills/ # vendor-neutral Agent Skills (open standard)
-├── memory/         # evolutionary memory
-│   ├── *.md        #   public top-level: loaded into prompt every session
-│   ├── <topic>/    #   public nested (e.g. playbooks/): on-demand
-│   └── private/    #   optional clone of overmind-private-memory; gitignored
-│                   #     ├── *.md     private top-level: appended when mounted
-│                   #     └── <topic>/ private nested: on-demand
-├── projects/       # active project work; gitignored. Memory repos NOT here.
-├── scripts/        # launcher, prompt assembler, shell integration
-└── .git-ignored/   # local-only scratch, caches, transient state
+├── AGENTS.md       # agent entry contract
+├── .agents/skills/ # Agent Skills (open standard)
+├── memory/         # *.md auto-loaded into the system prompt
+│   └── private/    # optional gitignored clone for personal context
+├── projects/       # active project work; gitignored
+├── scripts/        # launcher + prompt assembler
+└── .git-ignored/   # local-only scratch
 ```
 
 ## Agent contract
