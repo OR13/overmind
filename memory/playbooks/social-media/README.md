@@ -1,10 +1,12 @@
 # Social Media Skills
 
-Slash commands for posting hot takes and curating your follow graph on
-Bluesky and X.com from inside Claude Code. Skill prompts are committed
-to `overmind/.claude/commands/`. Per-user state — preferences, post
-history, keep list — lives in `overmind/.git-ignored/social-media/` and
-is never committed.
+Skills for posting hot takes and curating your follow graph on Bluesky
+and X.com. Committed at `overmind/.agents/skills/<name>/SKILL.md` in
+the open-standard Agent Skills format — auto-discovered by Gemini CLI,
+exposed as `/<name>` slash commands in Claude Code via
+`.claude/commands/` symlinks. Per-user state — preferences, post
+history, keep list — lives in `overmind/.git-ignored/social-media/`
+and is never committed.
 
 ## Commands
 
@@ -20,22 +22,31 @@ is never committed.
 ### 1. Set `OVERMIND_ROOT`
 
 The skills read and write state under `$OVERMIND_ROOT/.git-ignored/social-media/`.
-
-The recommended setup is a shell alias that exports `OVERMIND_ROOT`,
-sources your secrets, and launches Claude Code from the workspace
-root. Add to `~/.zshrc` (or your shell's equivalent):
-
-```bash
-alias overmind='export OVERMIND_ROOT="$HOME/overmind" && cd "$OVERMIND_ROOT" && source "$OVERMIND_ROOT/.git-ignored/secrets.env" && claude --permission-mode auto --append-system-prompt "$(cat "$OVERMIND_ROOT/AGENTS.md")"'
-```
-
-Then start every session with `overmind`. If you prefer to launch
-Claude Code directly without the alias, export the variable yourself
-in your shell profile:
+Export it from `~/.zshenv` so every shell — interactive, login, and any
+subshell Claude Code spawns — inherits it:
 
 ```bash
 export OVERMIND_ROOT="$HOME/overmind"   # or wherever you cloned overmind
 ```
+
+`~/.zshenv` is the right file because zsh sources it for *every*
+invocation. `~/.zshrc` only runs for interactive shells, so vars set
+there can be missing from subshells the Bash tool spawns mid-session.
+
+#### Optional: convenience alias
+
+For an ergonomic launcher that also sources secrets and applies the
+workspace's `AGENTS.md` system prompt, add to `~/.zshrc`:
+
+```bash
+alias overmind='cd "$OVERMIND_ROOT" && source "$OVERMIND_ROOT/.git-ignored/secrets.env" && claude --permission-mode auto --append-system-prompt "$("$OVERMIND_ROOT/scripts/build-system-prompt.sh")"'
+```
+
+The alias relies on `OVERMIND_ROOT` already being exported by
+`~/.zshenv`. Don't try to export it inside the alias — if your
+`secrets.env` ever sets or unsets `OVERMIND_ROOT` (intentionally or
+otherwise), the alias-side export gets clobbered and skills break with
+a confusing "OVERMIND_ROOT must point at your overmind clone" error.
 
 ### 2. Bluesky credentials
 
@@ -66,13 +77,16 @@ Skip this section entirely if you only want Bluesky.
 ### 4. Ollama (for `/filter-follows` and `/discover-accounts`)
 
 Account classification runs locally to avoid burning Claude tokens. Pull
-a small model:
+the model the skills are configured to use:
 
 ```bash
-ollama pull gemma2:2b
+ollama pull gemma4:latest
 ```
 
 The skills will warn and offer keyword-fallback if Ollama is not running.
+The model name is hardcoded in the skill prompts (`gemma4:latest`) — if
+you want to substitute a different Ollama model, edit the
+`SKILL.md` files under `.agents/skills/` directly.
 
 ### 5. First run
 
@@ -95,6 +109,31 @@ The `voice` field controls how `/post-content` drafts hot takes — keep
 it short and specific. Examples: `"analytical contrarian"`,
 `"earnest enthusiast"`, `"deadpan observer"`.
 
+### Seeding `/discover-accounts`
+
+`/discover-accounts` finds candidate accounts to follow by crawling
+the follow lists of a small set of high-signal seed accounts. Seeds
+live in a markdown file you edit directly:
+
+```text
+$OVERMIND_ROOT/.git-ignored/social-media/seeds.md
+```
+
+The file is created with a default template the first time
+`/discover-accounts` runs. Edit it in place — one handle per bullet,
+under the `## bluesky` and `## xcom` sections. No slash commands.
+
+When the seed list for a platform is empty, the skill falls back to
+platform search (`searchPosts` + `searchActors` on Bluesky) — useful
+for cold-starting on a new topic, but noisier than seed-driven
+discovery.
+
+A good seed is an account whose followings list is itself a curated
+list of people in the topic — typically a personal voice, not a
+publication or aggregator account. After running `/discover-accounts`
+once and approving some follows, the strongest of those new follows
+make excellent seeds for the next run; append them to `seeds.md`.
+
 ## State files
 
 All under `$OVERMIND_ROOT/.git-ignored/social-media/`:
@@ -102,6 +141,7 @@ All under `$OVERMIND_ROOT/.git-ignored/social-media/`:
 | File | Contents |
 |------|----------|
 | `preferences.json` | Topic keywords, voice, default platforms, posting cadence, timezone. |
+| `seeds.md` | Per-platform high-signal handles used by `/discover-accounts` as follow-graph seeds. Edit directly — one handle per bullet under `## bluesky` / `## xcom`. |
 | `post-log.json` | Append-only record of posts (URL, platforms, timestamp, post IDs). Used for dedup. |
 | `keep-list.json` | Accounts excluded from `/filter-follows` recommendations. |
 
@@ -110,7 +150,7 @@ so nothing here ever gets committed or pushed.
 
 ## Privacy boundary
 
-- **Committed (public):** the four skill prompts under `.claude/commands/`,
+- **Committed (public):** the skill prompts under `.agents/skills/` and
   this README. Generic — no handles, no personal topics.
 - **Local-only (private):** everything under `.git-ignored/social-media/`.
   Your handles, your topics, your post history, your keep list.
