@@ -16,21 +16,21 @@ it yours.
 > Five-minute path: clone → `source scripts/overmind.sh` from your shell rc →
 > `overmind`. Everything below is the long version of those three steps.
 
-## 📐 Layout
+## Layout
 
 ```
 .
-├── AGENTS.md       # static entry contract for any agent (open standard); also lists skills + operators
+├── AGENTS.md       # static entry contract; lists skills + operators
 ├── README.md       # this file
-├── .agents/skills/ # vendor-neutral Agent Skills (open standard) — discovered by both Claude Code and Gemini CLI
+├── .agents/skills/ # vendor-neutral Agent Skills (open standard)
 ├── memory/         # evolutionary memory
-│   ├── *.md        #   public top-level: loaded into the system prompt every session
-│   ├── <topic>/    #   public nested (e.g. playbooks/): on-demand reference
-│   └── private/    #   optional clone of `overmind-private-memory` repo; gitignored
-│                   #     ├── *.md       private top-level: appended to system prompt when mounted
-│                   #     └── <topic>/   private nested: on-demand
-├── projects/       # active project work; gitignored by default. Memory repos do NOT live here.
-├── scripts/        # launcher (overmind), prompt assembler (build-system-prompt.sh), shell integration (overmind.sh)
+│   ├── *.md        #   public top-level: loaded into prompt every session
+│   ├── <topic>/    #   public nested (e.g. playbooks/): on-demand
+│   └── private/    #   optional clone of overmind-private-memory; gitignored
+│                   #     ├── *.md     private top-level: appended when mounted
+│                   #     └── <topic>/ private nested: on-demand
+├── projects/       # active project work; gitignored. Memory repos NOT here.
+├── scripts/        # launcher, prompt assembler, shell integration
 └── .git-ignored/   # local-only scratch, caches, transient state
 ```
 
@@ -68,7 +68,7 @@ ln -s AGENTS.md .cursorrules
 > context (`AGENTS.md` + top-level `memory/*.md` + top-level
 > `memory/private/*.md` if mounted). It is gitignored.
 
-## ⚙️ Setup
+## Setup
 
 ### 1. Clone
 
@@ -146,7 +146,7 @@ export OVERMIND_BACKEND=gemini
 That's it. The `overmind` function dispatches to `scripts/overmind`, which
 assembles the system prompt and exec's the chosen CLI.
 
-## ⚡ How the launcher works
+## How the launcher works
 
 `scripts/overmind` feeds the *same* assembled context through whichever
 backend's native ingestion surface is available:
@@ -189,7 +189,7 @@ private repo still works.
 - Trailing args pass through: `overmind gemini --yolo` →
   `gemini --skip-trust --yolo` after writing `GEMINI.md`.
 
-## 🔐 Workspace-scoped secrets
+## Workspace-scoped secrets
 
 If a skill needs API credentials (e.g. social-media skills, third-party
 APIs), keep them in `.git-ignored/secrets.env`. The launcher sources
@@ -207,7 +207,7 @@ export X_API_TOKEN=...
 > machine cannot read it. `.git-ignored/` is already gitignored, so
 > the values never end up in version control.
 
-## 📚 References
+## References
 
 - [paperclipai/paperclip][paperclip] — agentic workspace that inspired the
   long-lived, file-based coordination model.
