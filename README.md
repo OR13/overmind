@@ -222,9 +222,14 @@ never end up in version control.
   used here as the primary agent contract.
 - [Context Repositories][letta-ctx] — Letta's writeup of the public/private,
   evolutionary context-repository pattern that this workspace follows.
+- [Dictionary of AI Coding][ai-dictionary] — Matt Pocock's plain-English
+  glossary for AI-coding jargon. Useful shared vocabulary for the
+  concepts overmind builds on (`AGENTS.md`, memory systems, skills,
+  subagents, progressive disclosure, handoff artifacts, compaction).
 
 [paperclip]: https://github.com/paperclipai/paperclip
 [dair-kb]: https://academy.dair.ai/blog/how-to-build-an-llm-knowledge-base
 [agents-md]: https://agents.md
 [agentskills]: https://agentskills.io
 [letta-ctx]: https://www.letta.com/blog/context-repositories
+[ai-dictionary]: https://github.com/mattpocock/dictionary-of-ai-coding
