@@ -1,5 +1,7 @@
 # overmind
 
+<video src="https://or13.io/video/empty-lot.mp4" autoplay loop muted playsinline></video>
+
 > A personal, file-based coordination system for agentic work — a long-lived
 > workspace that sits between you, your tools, and the projects you ship.
 
