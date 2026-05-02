@@ -216,7 +216,8 @@ never end up in version control.
 - [paperclipai/paperclip][paperclip] — agentic workspace that inspired the
   long-lived, file-based coordination model.
 - [How to Build an LLM Knowledge Base][dair-kb] — DAIR.AI's argument for
-  curated, structured knowledge as the foundation of useful LLM workflows.
+  curated, structured context as the foundation of useful LLM workflows;
+  this workspace's `memory/` tier is one expression of that idea.
 - [AGENTS.md][agents-md] — the open standard for agent onboarding files,
   used here as the primary agent contract.
 - [Context Repositories][letta-ctx] — Letta's writeup of the public/private,
