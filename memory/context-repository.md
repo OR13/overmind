@@ -29,6 +29,10 @@ Within each tier:
   is on-demand reference — agents navigate there when the topic is
   relevant; it is *not* concatenated into the prompt.
 
+This top-level-loaded / nested-on-demand split is the industry pattern
+called **progressive disclosure** — surface a small always-on layer,
+keep the rest one navigation step away.
+
 `AGENTS.md` at the repo root is the **static** entry contract — it does
 not change between sessions. Everything dynamic lives under `memory/`.
 

@@ -12,4 +12,4 @@ Use it for:
 
 This directory exists per-machine. A fresh clone gives you only this README.
 If something should survive across machines or sessions, promote it to
-`knowledge/` or to a project under `projects/`.
+`memory/` (or `memory/private/`) or to a project under `projects/`.

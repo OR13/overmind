@@ -10,11 +10,12 @@ frontmatter (likes/reposts/replies/quotes/bookmarks). Body text is preserved.
 import json
 import os
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -56,12 +57,22 @@ def fetch_posts(uris: list[str]) -> dict[str, dict[str, Any]]:
         url = f"{BSKY_PUBLIC_API}?{qs}"
         try:
             with urllib.request.urlopen(url, timeout=20) as resp:
-                payload = json.load(resp)
+                payload: Any = json.load(resp)
         except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
             print(f"  warn: batch fetch failed: {e}", file=sys.stderr)
             continue
-        for post in payload.get("posts", []):
-            out[post["uri"]] = post
+        if not isinstance(payload, dict):
+            continue
+        posts = cast(dict[str, Any], payload).get("posts", [])
+        if not isinstance(posts, list):
+            continue
+        for post in cast(list[Any], posts):
+            if not isinstance(post, dict):
+                continue
+            post_dict = cast(dict[str, Any], post)
+            uri = post_dict.get("uri")
+            if isinstance(uri, str):
+                out[uri] = post_dict
     return out
 
 
@@ -79,7 +90,7 @@ def main() -> None:
         meta, body = parse_md(f)
         parsed.append((f, meta, body))
         uri = meta.get("bluesky_uri")
-        if uri:
+        if isinstance(uri, str):
             uris.append(uri)
 
     print(f"Refreshing engagement for {len(uris)} bluesky posts...")
@@ -89,7 +100,7 @@ def main() -> None:
     updated = 0
     for path, meta, body in parsed:
         uri = meta.get("bluesky_uri")
-        post = results.get(uri) if uri else None
+        post = results.get(uri) if isinstance(uri, str) else None
         if not post:
             continue
         meta["engagement"] = {

@@ -1,6 +1,6 @@
 ---
 name: memory-reflect
-description: Review the current session for durable items worth persisting, route each to public or private memory based on a sensitivity gate, and ask before committing. Implements the "memory reflection" step of the Letta context-repository pattern.
+description: Review the current session for durable items worth persisting, route each to public or private memory based on a sensitivity gate, and ask before committing. Implements the "memory reflection" step of the Letta context-repository pattern — run before autocompact to preserve durable items that would otherwise be lost when the runtime shrinks the context.
 ---
 
 ## Memory reflection

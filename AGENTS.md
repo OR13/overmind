@@ -53,7 +53,9 @@ Committed at `.agents/skills/<name>/SKILL.md`. Per-skill state lives in
 
 ## Operators
 
-Long-lived agents (not skills) registered in this workspace:
+Long-lived agents (not skills) registered in this workspace. Industry
+vocabulary calls these **subagents**; "operator" here means the
+long-lived variant — registered once, invoked across many sessions.
 
 - **somnabulist**: an agent that uses local AI models within VS Code to
   perform tasks autonomously while the user is inactive or asleep.

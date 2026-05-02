@@ -14,10 +14,11 @@ import json
 import os
 import re
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -39,30 +40,39 @@ def slugify(text: str) -> str:
     return text.strip("-")
 
 
+def _as_dict(value: Any) -> dict[str, Any]:
+    return cast(dict[str, Any], value) if isinstance(value, dict) else {}
+
+
+def _as_str(value: Any) -> str:
+    return value if isinstance(value, str) else ""
+
+
 def fetch_bluesky_post(at_uri: str) -> dict[str, Any] | None:
     qs = urllib.parse.urlencode({"uris": at_uri})
     url = f"{BSKY_PUBLIC_API}?{qs}"
     try:
         with urllib.request.urlopen(url, timeout=15) as resp:
-            payload = json.load(resp)
+            payload: Any = json.load(resp)
     except (urllib.error.URLError, json.JSONDecodeError, TimeoutError) as e:
         print(f"  warn: failed to fetch {at_uri}: {e}", file=sys.stderr)
         return None
-    posts = payload.get("posts", [])
-    if not posts:
+    posts = _as_dict(payload).get("posts", [])
+    if not isinstance(posts, list) or not posts:
         return None
-    return posts[0]
+    first = cast(list[Any], posts)[0]
+    return _as_dict(first) or None
 
 
 def slug_from_entry(entry: dict[str, Any], bsky_post: dict[str, Any] | None) -> str:
     title = ""
     if bsky_post:
-        embed = bsky_post.get("record", {}).get("embed", {})
-        ext = embed.get("external") if isinstance(embed, dict) else None
-        if isinstance(ext, dict):
-            title = ext.get("title", "") or ""
+        record = _as_dict(bsky_post.get("record"))
+        embed = _as_dict(record.get("embed"))
+        ext = _as_dict(embed.get("external"))
+        title = _as_str(ext.get("title"))
     if not title:
-        url = entry.get("url", "")
+        url = _as_str(entry.get("url"))
         path = urllib.parse.urlparse(url).path
         title = path.rstrip("/").rsplit("/", 1)[-1] or url
     slug = slugify(title)
@@ -97,13 +107,12 @@ def migrate() -> None:
         title = ""
         description = ""
         if bsky_post:
-            record = bsky_post.get("record", {})
-            text = record.get("text", "") or ""
-            embed = record.get("embed", {})
-            ext = embed.get("external") if isinstance(embed, dict) else None
-            if isinstance(ext, dict):
-                title = ext.get("title", "") or ""
-                description = ext.get("description", "") or ""
+            record = _as_dict(bsky_post.get("record"))
+            text = _as_str(record.get("text"))
+            embed = _as_dict(record.get("embed"))
+            ext = _as_dict(embed.get("external"))
+            title = _as_str(ext.get("title"))
+            description = _as_str(ext.get("description"))
 
         base_slug = slug_from_entry(entry, bsky_post)
         slug = base_slug

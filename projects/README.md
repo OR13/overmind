@@ -24,5 +24,6 @@ Three patterns, in order of preference:
 ## What goes here vs. elsewhere
 
 - `projects/` is for code with its own lifecycle.
-- `knowledge/` is for curated notes that outlive any single project.
+- `memory/` (or `memory/private/`) is for curated notes that outlive any
+  single project.
 - `.git-ignored/` is for transient artifacts that shouldn't survive at all.
