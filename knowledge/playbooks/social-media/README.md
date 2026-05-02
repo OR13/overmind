@@ -20,7 +20,18 @@ is never committed.
 ### 1. Set `OVERMIND_ROOT`
 
 The skills read and write state under `$OVERMIND_ROOT/.git-ignored/social-media/`.
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+
+The recommended setup is a shell alias that exports `OVERMIND_ROOT`,
+sources your secrets, and launches Claude Code from the workspace
+root. Add to `~/.zshrc` (or your shell's equivalent):
+
+```bash
+alias overmind='export OVERMIND_ROOT="$HOME/overmind" && cd "$OVERMIND_ROOT" && source "$OVERMIND_ROOT/.git-ignored/secrets.env" && claude --permission-mode auto --append-system-prompt "$(cat "$OVERMIND_ROOT/AGENTS.md")"'
+```
+
+Then start every session with `overmind`. If you prefer to launch
+Claude Code directly without the alias, export the variable yourself
+in your shell profile:
 
 ```bash
 export OVERMIND_ROOT="$HOME/overmind"   # or wherever you cloned overmind
