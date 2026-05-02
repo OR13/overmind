@@ -27,9 +27,21 @@ it yours.
 ├── memory/         # *.md auto-loaded into the system prompt
 │   └── private/    # optional gitignored clone for personal context
 ├── projects/       # active project work; gitignored
+├── tools/          # ts / py / bash scripts; validated in CI
 ├── scripts/        # launcher + prompt assembler
-└── .git-ignored/   # local-only scratch
+└── .git-ignored/   # local-only scratch; holds secrets.env
 ```
+
+`tools/` is the home for executable scripts the agent can invoke —
+TypeScript (Bun), Python (uv), and Bash. CI lints, type-checks, and
+tests each language; see `tools/README.md` for the gates and how to
+add a script.
+
+Workspace-scoped secrets live in `.git-ignored/secrets.env`. The
+launcher sources that file before exec'ing the backend, so values
+populate only inside `overmind` sessions and never reach version
+control. See [Workspace-scoped secrets](#workspace-scoped-secrets) for
+the full layout.
 
 ## Agent contract
 
