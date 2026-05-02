@@ -41,38 +41,22 @@ Report which platforms are available before continuing.
 
 ### Step 2: Load preferences and post log
 
-Ensure the data directory exists:
-
-```bash
-mkdir -p "${OVERMIND_ROOT:?OVERMIND_ROOT must point at your overmind clone — see memory/playbooks/social-media/README.md}/.git-ignored/social-media"
-```
-
 Read preferences:
 
 ```bash
-cat $OVERMIND_ROOT/.git-ignored/social-media/preferences.json 2>/dev/null
+uv run tools/overmind_social_skills_memory.py config get
 ```
 
-If the file doesn't exist, STOP and tell the user to run `/social-config` first to seed preferences and add at least one topic keyword. Do not proceed.
-
-If the file exists but `topicKeywords` is empty AND `$ARGUMENTS` is also empty, STOP and tell the user to add keywords via `/social-config add keyword "..."` or pass a topic as an argument. Do not proceed.
-
-Read the post log for deduplication:
-
-```bash
-cat $OVERMIND_ROOT/.git-ignored/social-media/post-log.json 2>/dev/null
-```
-
-If the file doesn't exist, treat it as an empty array `[]`.
+If `topic_keywords` is empty AND `$ARGUMENTS` is also empty, STOP and tell the user to add keywords via `/social-config add keyword "..."` or pass a topic as an argument. Do not proceed.
 
 Extract the topic keywords from preferences. If `$ARGUMENTS` was provided, use that as the search topic instead.
 
 ### Step 3: Check posting limits
 
-Read `maxPostsPerDay` from preferences. Count how many entries in post-log.json have a `postedAt` date matching today (in the configured timezone).
+Read `max_posts_per_day` from preferences. Use `uv run tools/overmind_social_skills_memory.py log list --limit 50` to get recent posts. Count how many have a `posted_at` date matching today (in the configured timezone).
 
-- If today's count >= maxPostsPerDay: Warn the user that the daily limit has been reached. Ask if they want to proceed anyway or stop. If they stop, end here.
-- If current time is outside the `preferredTimes` windows (more than 1 hour away from any preferred time): Inform the user and note the next preferred window. Offer to proceed anyway.
+- If today's count >= max_posts_per_day: Warn the user that the daily limit has been reached. Ask if they want to proceed anyway or stop. If they stop, end here.
+- If current time is outside the `preferred_times` windows (more than 1 hour away from any preferred time): Inform the user and note the next preferred window. Offer to proceed anyway.
 
 ### Step 4: Discover content via web search
 
@@ -129,7 +113,12 @@ If authentication fails for either platform, report the error clearly and contin
 
 Combine all discovered content (web search + platform feeds). For each candidate:
 
-1. Check if the URL already exists in post-log.json — if so, exclude it (already posted)
+1. Check if the URL already exists in memory:
+   
+   ```bash
+   uv run tools/overmind_social_skills_memory.py log check --url "<URL>"
+   ```
+
 2. Assess relevance to the topic keywords (score 0-1)
 3. Prefer recent content (last 7 days)
 4. Prefer content with substantive analysis over announcements or listicles
@@ -260,23 +249,27 @@ Do NOT attempt to call the X.com tweets API. The X.com post is manual — the us
 
 ### Step 13: Update post log
 
-After Bluesky publishes successfully (and/or user confirms they posted to X.com), read the current post-log.json, append a new entry, and write it back:
+After Bluesky publishes successfully (and/or user confirms they posted to X.com), record the post:
 
-```json
-{
+```bash
+uv run tools/overmind_social_skills_memory.py log add --data '{
   "url": "<ORIGINAL_CONTENT_URL>",
-  "contentId": "<SHA256_OF_URL>",
+  "title": "<CONTENT_TITLE>",
+  "text": "<POST_TEXT_CONTENT>",
+  "content_id": "<SHA256_OF_URL>",
   "platforms": ["bluesky", "xcom"],
-  "postedAt": "<ISO_8601_TIMESTAMP>",
-  "textHash": "<SHA256_OF_POST_TEXT>",
-  "blueskyUri": "<AT_URI_OR_NULL>",
-  "xcomTweetId": null
-}
+  "text_hash": "<SHA256_OF_POST_TEXT>",
+  "bluesky_uri": "<AT_URI_OR_NULL>",
+  "xcom_tweet_id": null,
+  "engagement": {
+    "likes": 0,
+    "reposts": 0,
+    "replies": 0
+  }
+}'
 ```
 
 For platforms: include "bluesky" if auto-published, include "xcom" if the user confirmed they pasted it. Ask the user: "Did you post the X.com version? (yes/no)" to determine whether to log it.
-
-Write the updated array to `$OVERMIND_ROOT/.git-ignored/social-media/post-log.json` using the Write tool.
 
 ### Step 14: Report completion
 

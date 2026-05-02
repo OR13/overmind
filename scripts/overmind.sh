@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
 # overmind — shell integration. Source this from your ~/.zshrc or
 # ~/.bashrc to expose the `overmind` command in interactive shells:
 #
@@ -14,6 +16,8 @@
 #   overmind            # default backend (claude)
 #   overmind gemini     # explicit gemini
 #   overmind claude     # explicit claude
+#   oc                  # shortcut: overmind claude
+#   og                  # shortcut: overmind gemini
 #   OVERMIND_BACKEND=gemini overmind
 #
 # Plain POSIX-ish — works in both bash and zsh.
@@ -23,4 +27,12 @@ export OVERMIND_ROOT
 
 overmind() {
   "$OVERMIND_ROOT/scripts/overmind" "$@"
+}
+
+oc() {
+  "$OVERMIND_ROOT/scripts/overmind" claude "$@"
+}
+
+og() {
+  "$OVERMIND_ROOT/scripts/overmind" gemini "$@"
 }

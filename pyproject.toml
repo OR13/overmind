@@ -4,12 +4,12 @@ version = "0.0.0"
 description = "Personal agentic coordination workspace"
 requires-python = ">=3.12"
 
-[tool.uv]
-package = false
-dev-dependencies = [
+[dependency-groups]
+dev = [
   "ruff>=0.7",
   "pyright>=1.1.380",
   "pytest>=8",
+  "pyyaml>=6.0.1",
 ]
 
 [tool.ruff]

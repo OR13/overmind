@@ -25,47 +25,50 @@ set -euo pipefail
 
 ROOT="${OVERMIND_ROOT:-}"
 if [ -z "$ROOT" ]; then
-  ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+        ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 if [ ! -f "$ROOT/AGENTS.md" ]; then
-  echo "overmind: cannot find workspace root (set OVERMIND_ROOT)" >&2
-  exit 1
+        echo "overmind: cannot find workspace root (set OVERMIND_ROOT)" >&2
+        exit 1
 fi
 
 BACKEND="${OVERMIND_BACKEND:-claude}"
 case "${1:-}" in
-  claude|gemini) BACKEND="$1"; shift ;;
+claude | gemini)
+        BACKEND="$1"
+        shift
+        ;;
 esac
 
 # Source workspace-scoped secrets if present (kept out of every other shell).
 if [ -f "$ROOT/.git-ignored/secrets.env" ]; then
-  set -a
-  # shellcheck disable=SC1091
-  . "$ROOT/.git-ignored/secrets.env"
-  set +a
+        set -a
+        # shellcheck disable=SC1091
+        . "$ROOT/.git-ignored/secrets.env"
+        set +a
 fi
 
 cd "$ROOT"
 PROMPT="$("$ROOT/scripts/build-system-prompt.sh")"
 
 case "$BACKEND" in
-  claude)
-    exec claude --permission-mode auto --append-system-prompt "$PROMPT" "$@"
-    ;;
-  gemini)
-    # Gemini CLI has no --append-system-prompt; it auto-loads GEMINI.md from
-    # cwd. We regenerate that file on each launch so the dynamic memory/*.md
-    # tier (and private memory, if mounted) reaches Gemini the same way it
-    # reaches Claude. GEMINI.md is gitignored.
-    #
-    # --skip-trust marks the workspace trusted for the session so Gemini
-    # auto-discovers project skills (.agents/skills/) and project hooks
-    # without an interactive prompt. Symmetric to claude --permission-mode auto.
-    printf '%s\n' "$PROMPT" > "$ROOT/GEMINI.md"
-    exec gemini --skip-trust "$@"
-    ;;
-  *)
-    echo "overmind: unknown backend '$BACKEND' (expected: claude or gemini)" >&2
-    exit 1
-    ;;
+claude)
+        exec claude --permission-mode auto --append-system-prompt "$PROMPT" "$@"
+        ;;
+gemini)
+        # Gemini CLI has no --append-system-prompt; it auto-loads GEMINI.md from
+        # cwd. We regenerate that file on each launch so the dynamic memory/*.md
+        # tier (and private memory, if mounted) reaches Gemini the same way it
+        # reaches Claude. GEMINI.md is gitignored.
+        #
+        # --skip-trust marks the workspace trusted for the session so Gemini
+        # auto-discovers project skills (.agents/skills/) and project hooks
+        # without an interactive prompt. Symmetric to claude --permission-mode auto.
+        printf '%s\n' "$PROMPT" >"$ROOT/GEMINI.md"
+        exec gemini --skip-trust "$@"
+        ;;
+*)
+        echo "overmind: unknown backend '$BACKEND' (expected: claude or gemini)" >&2
+        exit 1
+        ;;
 esac

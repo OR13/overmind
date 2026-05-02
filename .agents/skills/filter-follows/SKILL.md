@@ -46,11 +46,10 @@ If auditing both and only one platform has credentials, report which platform wi
 ### Step 3: Load keep list
 
 ```bash
-mkdir -p "${OVERMIND_ROOT:?OVERMIND_ROOT must point at your overmind clone — see memory/playbooks/social-media/README.md}/.git-ignored/social-media"
-cat "$OVERMIND_ROOT/.git-ignored/social-media/keep-list.json" 2>/dev/null
+uv run tools/overmind_social_skills_memory.py keep-list get
 ```
 
-If the file doesn't exist, treat it as an empty array `[]`. Parse the keep list — these accounts will be excluded from unfollow recommendations.
+The result is a JSON array of accounts to exclude from unfollow recommendations.
 
 ### Step 4: Fetch followed accounts
 
@@ -226,18 +225,11 @@ Report each successful unfollow. If any fails, report the error and continue wit
 
 ### Step 9: Update keep list
 
-For every account the user marked as "keep", append to keep-list.json:
+For every account the user marked as "keep", record it:
 
-```json
-{
-  "handle": "<ACCOUNT_HANDLE>",
-  "platform": "bluesky",
-  "addedAt": "<ISO_8601_TIMESTAMP>",
-  "reason": null
-}
+```bash
+uv run tools/overmind_social_skills_memory.py keep-list add "<HANDLE>"
 ```
-
-Read the current keep-list.json, append new entries (avoid duplicates by checking handle + platform), and write it back using the Write tool.
 
 ### Step 10: Report completion
 

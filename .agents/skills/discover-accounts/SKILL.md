@@ -40,49 +40,22 @@ If the requested platform's credentials are missing, STOP and report the error.
 ### Step 3: Load preferences
 
 ```bash
-mkdir -p "${OVERMIND_ROOT:?OVERMIND_ROOT must point at your overmind clone — see memory/playbooks/social-media/README.md}/.git-ignored/social-media"
-cat "$OVERMIND_ROOT/.git-ignored/social-media/preferences.json" 2>/dev/null
+uv run tools/overmind_social_skills_memory.py config get
 ```
 
-Extract `topicKeywords` for search queries. If preferences don't exist OR `topicKeywords` is empty, STOP and tell the user to run `/social-config add keyword "..."` first. Do not proceed.
+Extract `topic_keywords` for search queries. If preferences don't exist OR `topic_keywords` is empty, STOP and tell the user to run `/social-config add keyword "..."` first. Do not proceed.
 
-### Step 3.5: Load (or create) seeds.md
+### Step 3.5: Load seeds
 
-Seeds for follow-graph crawling are stored in a markdown file the user maintains directly:
+Seeds for follow-graph crawling are managed via the memory tool:
 
 ```bash
-SEEDS_FILE="$OVERMIND_ROOT/.git-ignored/social-media/seeds.md"
+uv run tools/overmind_social_skills_memory.py seeds get
 ```
 
-If `seeds.md` does not exist, create it with this default template (using the Write tool) and tell the user where it lives so they can edit it:
+The result is a JSON object with platform keys (e.g., `bluesky`, `xcom`) containing arrays of handles.
 
-```markdown
-# /discover-accounts seeds
-
-Curated high-signal handles per platform. `/discover-accounts` crawls each
-seed's follow list to surface candidates in the same topic space.
-
-A good seed: a personal voice (not a publication or aggregator) whose own
-followings are themselves a curated list of people in your topic. After
-running `/discover-accounts` and approving follows, the strongest of those
-new follows make excellent seeds — append them here.
-
-## bluesky
-
-<!-- One handle per bullet. Examples below; replace with your own. -->
-<!-- - alice.bsky.social -->
-<!-- - bob.example.com -->
-
-## xcom
-
-<!-- One handle per bullet. Examples below; replace with your own. -->
-<!-- - alice -->
-<!-- - bob -->
-```
-
-To parse `seeds.md` for a given platform, find the `## <platform>` heading (case-insensitive) and collect every line that starts with `- ` (or `* `), stripping leading `@` and surrounding whitespace. Lines starting with `<!--`, `#`, or blank lines are ignored. Stop at the next `## ` heading.
-
-The result is two arrays: `bluesky_seeds` and `xcom_seeds`.
+To add a seed: `uv run tools/overmind_social_skills_memory.py seeds set <platform> "<handle1>,<handle2>"`
 
 ### Step 4: Search for candidate accounts
 

@@ -45,7 +45,6 @@ Committed at `.agents/skills/<name>/SKILL.md`. Per-skill state lives in
 
 | Skill | Purpose |
 |-------|---------|
-| `social-config` | View / modify social-media posting preferences. |
 | `post-content` | Draft and publish hot takes to Bluesky and X.com. |
 | `discover-accounts` | Find candidate accounts to follow via seed crawl + platform search. |
 | `filter-follows` | Audit followed accounts and recommend unfollows for off-topic content. |
@@ -71,6 +70,27 @@ Long-lived agents (not skills) registered in this workspace:
 - Don't introduce vendor-specific tooling at the repo root. If a tool needs
   its own config file, symlink it to `AGENTS.md` rather than duplicating
   content.
+
+## Git worktrees
+
+Work in any `projects/<name>/` repo SHOULD be done in a git worktree, not
+directly in the checked-out clone. This keeps the primary checkout on a
+clean branch and lets concurrent agents work on different branches without
+stomping on each other.
+
+- **Location:** all worktrees go in `$OVERMIND_ROOT/.git-worktrees/`,
+  which is gitignored. Create the directory if it doesn't exist.
+- **Fetch first:** before creating a worktree, fetch the latest remote
+  state so the new branch starts from an up-to-date base —
+  `git -C projects/<name> fetch origin`.
+- **Create:**
+  `git -C projects/<name> worktree add $OVERMIND_ROOT/.git-worktrees/<slug> -b <feature-branch> origin/<base-branch>`
+- **Feature branches only:** never check a worktree out directly on
+  `main` (or whatever the project's default branch is).
+- **Cleanup:** when the work is merged, abandoned, or no longer needed,
+  remove the worktree and prune stale references —
+  `git -C projects/<name> worktree remove $OVERMIND_ROOT/.git-worktrees/<slug>`
+  then `git -C projects/<name> worktree prune`.
 
 ## Dynamic system prompt
 

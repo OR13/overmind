@@ -5,8 +5,8 @@ and X.com. Committed at `overmind/.agents/skills/<name>/SKILL.md` in
 the open-standard Agent Skills format — auto-discovered by Gemini CLI,
 exposed as `/<name>` slash commands in Claude Code via
 `.claude/commands/` symlinks. Per-user state — preferences, post
-history, keep list — lives in `overmind/.git-ignored/social-media/`
-and is never committed.
+history, keep list — lives in `memory/private/social-media/`
+and is never committed to overmind.
 
 ## Commands
 
@@ -15,13 +15,26 @@ and is never committed.
 | `/post-content` | Discovers trending content via web + platform feeds, drafts a hot take, posts to Bluesky via API, gives you copy-paste text for X.com. |
 | `/filter-follows [bluesky\|xcom]` | Audits accounts you follow, classifies recent posts (business/tech, politics, sports, sexual, other) using a local Ollama model, recommends unfollows for ≥70% off-topic accounts. |
 | `/discover-accounts [bluesky\|xcom]` | Finds candidate accounts to follow via web search + follow-of-follow analysis, verifies topic relevance via Ollama, follows after approval. |
-| `/social-config` | View or modify the preferences file. |
+
+## Configuration
+
+Social media preferences and state are managed directly in your private memory tier at `memory/private/social-media/`.
+
+- **`preferences.md`**: ALL settings and configuration, including topic keywords, voice, seeds, and the keep list.
+- **`posts/`**: A directory containing individual `.md` files for each post, named by a slug. Each file contains metadata (URL, platforms, text, engagement).
+
+You can view or modify these files directly, or use the specialized tool:
+
+```bash
+uv run tools/overmind_social_skills_memory.py config get
+uv run tools/overmind_social_skills_memory.py config set topic_keywords "agentic dev,ai product"
+```
 
 ## One-time setup
 
 ### 1. Set `OVERMIND_ROOT`
 
-The skills read and write state under `$OVERMIND_ROOT/.git-ignored/social-media/`.
+The skills read and write state under `$OVERMIND_ROOT/memory/private/social-media/`.
 Export it from `~/.zshenv` so every shell — interactive, login, and any
 subshell Claude Code spawns — inherits it:
 
@@ -90,19 +103,20 @@ you want to substitute a different Ollama model, edit the
 
 ### 5. First run
 
-```text
-/social-config
+Ensure `memory/private/social-media/preferences.md` is initialized. You can
+initialize it with defaults using:
+
+```bash
+uv run tools/overmind_social_skills_memory.py config get
 ```
 
-This creates `$OVERMIND_ROOT/.git-ignored/social-media/preferences.json`
-with neutral defaults (empty topic keywords, neutral voice, UTC timezone).
 You must add at least one keyword before `/post-content` or
 `/discover-accounts` will run:
 
-```text
-/social-config add keyword "topic you want to post about"
-/social-config set timezone "America/New_York"
-/social-config set voice "deadpan observer; understated wit; never preachy"
+```bash
+uv run tools/overmind_social_skills_memory.py config set topic_keywords "agentic software development,AI product methodology"
+uv run tools/overmind_social_skills_memory.py config set timezone "America/Chicago"
+uv run tools/overmind_social_skills_memory.py config set voice "analytical contrarian; novel angle; insightful but opinionated"
 ```
 
 The `voice` field controls how `/post-content` drafts hot takes — keep
@@ -113,15 +127,13 @@ it short and specific. Examples: `"analytical contrarian"`,
 
 `/discover-accounts` finds candidate accounts to follow by crawling
 the follow lists of a small set of high-signal seed accounts. Seeds
-live in a markdown file you edit directly:
+live in the private memory file:
 
-```text
-$OVERMIND_ROOT/.git-ignored/social-media/seeds.md
+```bash
+$OVERMIND_ROOT/memory/private/social-media/seeds.md
 ```
 
-The file is created with a default template the first time
-`/discover-accounts` runs. Edit it in place — one handle per bullet,
-under the `## bluesky` and `## xcom` sections. No slash commands.
+The file is managed via `uv run tools/overmind_social_skills_memory.py seeds`.
 
 When the seed list for a platform is empty, the skill falls back to
 platform search (`searchPosts` + `searchActors` on Bluesky) — useful
@@ -132,27 +144,24 @@ A good seed is an account whose followings list is itself a curated
 list of people in the topic — typically a personal voice, not a
 publication or aggregator account. After running `/discover-accounts`
 once and approving some follows, the strongest of those new follows
-make excellent seeds for the next run; append them to `seeds.md`.
+make excellent seeds for the next run.
 
 ## State files
 
-All under `$OVERMIND_ROOT/.git-ignored/social-media/`:
+All under `$OVERMIND_ROOT/memory/private/social-media/`:
 
-| File | Contents |
+| File / Dir | Contents |
 |------|----------|
-| `preferences.json` | Topic keywords, voice, default platforms, posting cadence, timezone. |
-| `seeds.md` | Per-platform high-signal handles used by `/discover-accounts` as follow-graph seeds. Edit directly — one handle per bullet under `## bluesky` / `## xcom`. |
-| `post-log.json` | Append-only record of posts (URL, platforms, timestamp, post IDs). Used for dedup. |
-| `keep-list.json` | Accounts excluded from `/filter-follows` recommendations. |
+| `preferences.md` | Topic keywords, voice, default platforms, posting cadence, timezone, seeds, and keep list. |
+| `posts/` | Individual post files containing URLs, text content, and engagement metrics. |
 
-These are local-only — `.git-ignored/` is in the repo's `.gitignore`,
-so nothing here ever gets committed or pushed.
+These are local-only and kept in your private memory repository.
 
 ## Privacy boundary
 
 - **Committed (public):** the skill prompts under `.agents/skills/` and
   this README. Generic — no handles, no personal topics.
-- **Local-only (private):** everything under `.git-ignored/social-media/`.
+- **Private memory:** everything under `memory/private/social-media/`.
   Your handles, your topics, your post history, your keep list.
 - **Environment:** credentials live only in your shell profile; never in
   any committed file.
@@ -162,8 +171,8 @@ so nothing here ever gets committed or pushed.
 - `/filter-follows` hardcodes its off-topic taxonomy as `politics`,
   `sports`, and `sexual content`, with `business_tech` as the default
   on-topic category. If you want to follow political or sports accounts
-  on purpose, add them to `keep-list.json` — or fork the skill and
+  on purpose, add them to `keep_list.md` — or fork the skill and
   rewrite the classifier prompt. The categories are not yet
-  configurable via `preferences.json`.
+  configurable via `preferences.md`.
 - X.com posting requires copy-paste; the free API tier doesn't permit
   programmatic tweets at sustainable volumes.

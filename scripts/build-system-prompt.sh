@@ -31,7 +31,7 @@ fi
 
 emit_file() {
   local path="$1"
-  local rel="${path#$ROOT/}"
+  local rel="${path#"$ROOT"/}"
   printf '\n<!-- begin: %s -->\n' "$rel"
   cat "$path"
   printf '\n<!-- end: %s -->\n' "$rel"
@@ -54,5 +54,5 @@ emit_dir() {
 }
 
 emit_file "$ROOT/AGENTS.md"
-emit_dir  "$ROOT/memory"
-emit_dir  "$ROOT/memory/private"
+emit_dir "$ROOT/memory"
+emit_dir "$ROOT/memory/private"
