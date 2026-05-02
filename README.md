@@ -1,7 +1,7 @@
 # overmind
 
-A personal, file-based coordination system for agentic work — a long-lived
-workspace that sits between you, your tools, and the projects you ship.
+> A personal, file-based coordination system for agentic work — a long-lived
+> workspace that sits between you, your tools, and the projects you ship.
 
 It is opinionated about structure but vendor-neutral: it uses [AGENTS.md][agents-md]
 as the primary onboarding contract for any coding agent, and treats plain
@@ -12,7 +12,11 @@ This repository is maintained by [@OR13](https://github.com/OR13) for personal
 use, but the structure is intentionally generic. Fork it, strip it, and make
 it yours.
 
-## Layout
+> [!TIP]
+> Five-minute path: clone → `source scripts/overmind.sh` from your shell rc →
+> `overmind`. Everything below is the long version of those three steps.
+
+## 📐 Layout
 
 ```
 .
@@ -32,34 +36,15 @@ it yours.
 
 ## How it's used
 
-- **AGENTS.md** is the *static* entry contract — repo identity, navigation
-  rules, commit conventions, plus the registries of skills and operators.
-  It does not change between sessions.
-- **.agents/skills/** holds vendor-neutral [Agent Skills][agentskills]
-  in the open-standard format (`<name>/SKILL.md` per skill). Gemini CLI
-  auto-discovers via this path. Claude Code finds them through a single
-  directory symlink — `.claude/skills` → `../.agents/skills` — since
-  Claude Code natively reads `.claude/skills/<name>/SKILL.md`, the same
-  layout as the open standard. One source of truth, no per-skill
-  bridge files.
-- **memory/** is the *evolutionary* layer.
-  - Top-level `memory/*.md` is **public** and concatenated onto the
-    system prompt every session — workspace conventions worth surfacing
-    on every turn (target ≤25 focused files).
-  - Nested public subdirectories (e.g. `memory/playbooks/`) are
-    committed but *on-demand* — agents navigate there for the user's
-    preferences, prior decisions, playbooks, or domain context.
-  - **memory/private/** is the documented mount point for a clone of the
-    separate `overmind-private-memory` git repo. Gitignored here. Its
-    top-level `*.md` is appended to the system prompt when mounted
-    (identity, role, customer/org names, in-flight private project
-    context); its nested `<topic>/...` is private on-demand reference.
-    Tracked entirely in the private repo — never in overmind.
-- **projects/** is for active project work (external clones, submodules,
-  in-tree prototypes). Gitignored by default. Memory repos do *not* live
-  here.
-- **.git-ignored/** is for transient state: agent scratchpads, downloaded
-  artifacts, model outputs, partial logs. Nothing in here is ever pushed.
+| Component | Role |
+|-----------|------|
+| **`AGENTS.md`** | *Static* entry contract — repo identity, navigation rules, commit conventions, plus the registries of skills and operators. Does not change between sessions. |
+| **`.agents/skills/`** | Vendor-neutral [Agent Skills][agentskills] in the open-standard format (`<name>/SKILL.md` per skill). Gemini CLI auto-discovers via this path; Claude Code finds them through a single directory symlink (`.claude/skills` → `../.agents/skills`). One source of truth, no per-skill bridge files. |
+| **`memory/` (top-level)** | Public, evolutionary. Every `*.md` here is concatenated into the system prompt every session — workspace conventions worth surfacing on every turn (target ≤25 focused files). |
+| **`memory/<topic>/`** | Public, on-demand. Committed but *not* auto-loaded — agents navigate there when the topic is relevant. |
+| **`memory/private/`** | Documented mount point for a clone of the separate `overmind-private-memory` repo. Gitignored here. Top-level `*.md` is appended to the prompt when mounted; nested is on-demand. |
+| **`projects/`** | Active project work (external clones, submodules, in-tree prototypes). Gitignored by default. Memory repos do *not* live here. |
+| **`.git-ignored/`** | Transient state: agent scratchpads, downloaded artifacts, model outputs, partial logs. Nothing in here is ever pushed. |
 
 The system prompt is rebuilt each session via `scripts/build-system-prompt.sh`
 (`AGENTS.md` + top-level `memory/*.md` + top-level `memory/private/*.md`
@@ -77,12 +62,13 @@ ln -s AGENTS.md CLAUDE.md
 ln -s AGENTS.md .cursorrules
 ```
 
-`GEMINI.md` is *not* a symlink — it is regenerated on each launch by
-`scripts/overmind` (gemini backend) and contains the full assembled context
-(`AGENTS.md` + top-level `memory/*.md` + top-level `memory/private/*.md`
-if mounted). It is gitignored.
+> [!NOTE]
+> `GEMINI.md` is *not* a symlink — it is regenerated on each launch by
+> `scripts/overmind` (gemini backend) and contains the full assembled
+> context (`AGENTS.md` + top-level `memory/*.md` + top-level
+> `memory/private/*.md` if mounted). It is gitignored.
 
-## Setup
+## ⚙️ Setup
 
 ### 1. Clone
 
@@ -160,7 +146,7 @@ export OVERMIND_BACKEND=gemini
 That's it. The `overmind` function dispatches to `scripts/overmind`, which
 assembles the system prompt and exec's the chosen CLI.
 
-## How the launcher works
+## ⚡ How the launcher works
 
 `scripts/overmind` feeds the *same* assembled context through whichever
 backend's native ingestion surface is available:
@@ -170,6 +156,15 @@ backend's native ingestion surface is available:
 | Claude  | `claude --append-system-prompt "$(scripts/build-system-prompt.sh)"` |
 | Gemini  | writes assembled prompt to `GEMINI.md` (auto-loaded from cwd), then `gemini` |
 
+```mermaid
+flowchart LR
+    A[AGENTS.md] --> P[build-system-prompt.sh]
+    M[memory/*.md] --> P
+    PM[memory/private/*.md<br/>if mounted] --> P
+    P --> C[claude<br/>--append-system-prompt]
+    P --> G[GEMINI.md<br/>then gemini]
+```
+
 The assembled context is `AGENTS.md` + every top-level `*.md` in
 `memory/` + (when mounted) every top-level `*.md` in `memory/private/`.
 Nested subdirectories at either layer (e.g. `memory/playbooks/`,
@@ -177,7 +172,7 @@ Nested subdirectories at either layer (e.g. `memory/playbooks/`,
 reference. Missing files are silently skipped, so a fresh clone with no
 private repo still works.
 
-Notes:
+**Notes:**
 
 - For Claude, `--append-system-prompt` layers the assembled text on top
   of Claude Code's default prompt in interactive mode.
@@ -194,7 +189,7 @@ Notes:
 - Trailing args pass through: `overmind gemini --yolo` →
   `gemini --skip-trust --yolo` after writing `GEMINI.md`.
 
-## Workspace-scoped secrets
+## 🔐 Workspace-scoped secrets
 
 If a skill needs API credentials (e.g. social-media skills, third-party
 APIs), keep them in `.git-ignored/secrets.env`. The launcher sources
@@ -207,11 +202,12 @@ export BLUESKY_APP_PASSWORD=...
 export X_API_TOKEN=...
 ```
 
-`chmod 600 .git-ignored/secrets.env` so other users on the machine
-cannot read it. `.git-ignored/` is already gitignored, so the values
-never end up in version control.
+> [!IMPORTANT]
+> Run `chmod 600 .git-ignored/secrets.env` so other users on the
+> machine cannot read it. `.git-ignored/` is already gitignored, so
+> the values never end up in version control.
 
-## References
+## 📚 References
 
 - [paperclipai/paperclip][paperclip] — agentic workspace that inspired the
   long-lived, file-based coordination model.
