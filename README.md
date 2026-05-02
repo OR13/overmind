@@ -1,6 +1,6 @@
 # overmind
 
-[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.jpg)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
+[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.webp)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
 
 > A personal, file-based coordination system for agentic work — a long-lived
 > workspace that sits between you, your tools, and the projects you ship.
