@@ -1,6 +1,6 @@
 # overmind
 
-[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.jpg)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
+[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.webp)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
 
 > A personal, file-based coordination system for agentic work — a long-lived
 > workspace that sits between you, your tools, and the projects you ship.
@@ -18,7 +18,7 @@ it yours.
 > Five-minute path: clone → `source scripts/overmind.sh` from your shell rc →
 > `overmind`. Everything below is the long version of those three steps.
 
-## Layout
+## tldr
 
 ```
 .
@@ -35,23 +35,6 @@ it yours.
 ├── scripts/        # launcher, prompt assembler, shell integration
 └── .git-ignored/   # local-only scratch, caches, transient state
 ```
-
-## How it's used
-
-| Component | Role |
-|-----------|------|
-| **`AGENTS.md`** | *Static* entry contract — repo identity, navigation rules, commit conventions, plus the registries of skills and operators. Does not change between sessions. |
-| **`.agents/skills/`** | Vendor-neutral [Agent Skills][agentskills] in the open-standard format (`<name>/SKILL.md` per skill). Gemini CLI auto-discovers via this path; Claude Code finds them through a single directory symlink (`.claude/skills` → `../.agents/skills`). One source of truth, no per-skill bridge files. |
-| **`memory/` (top-level)** | Public, evolutionary. Every `*.md` here is concatenated into the system prompt every session — workspace conventions worth surfacing on every turn (target ≤25 focused files). |
-| **`memory/<topic>/`** | Public, on-demand. Committed but *not* auto-loaded — agents navigate there when the topic is relevant. |
-| **`memory/private/`** | Documented mount point for a clone of the separate `overmind-private-memory` repo. Gitignored here. Top-level `*.md` is appended to the prompt when mounted; nested is on-demand. |
-| **`projects/`** | Active project work (external clones, submodules, in-tree prototypes). Gitignored by default. Memory repos do *not* live here. |
-| **`.git-ignored/`** | Transient state: agent scratchpads, downloaded artifacts, model outputs, partial logs. Nothing in here is ever pushed. |
-
-The system prompt is rebuilt each session via `scripts/build-system-prompt.sh`
-(`AGENTS.md` + top-level `memory/*.md` + top-level `memory/private/*.md`
-if mounted). The `/memory-reflect` and `/memory-defrag` skills evolve
-the public and private memory tiers over time.
 
 ## Agent contract
 
