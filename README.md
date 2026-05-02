@@ -1,6 +1,6 @@
 # overmind
 
-[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.jpg)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
+[![After Hours — the parking lot empties. The building stays lit for no one.](.github/assets/after-hours.webp)](https://github.com/OR13/overmind/raw/main/.github/assets/after-hours.mp4)
 
 > A personal, file-based coordination system for agentic work — a long-lived
 > workspace that sits between you, your tools, and the projects you ship.
@@ -18,40 +18,30 @@ it yours.
 > Five-minute path: clone → `source scripts/overmind.sh` from your shell rc →
 > `overmind`. Everything below is the long version of those three steps.
 
-## Layout
+## tldr
 
 ```
 .
-├── AGENTS.md       # static entry contract; lists skills + operators
-├── README.md       # this file
-├── .agents/skills/ # vendor-neutral Agent Skills (open standard)
-├── memory/         # evolutionary memory
-│   ├── *.md        #   public top-level: loaded into prompt every session
-│   ├── <topic>/    #   public nested (e.g. playbooks/): on-demand
-│   └── private/    #   optional clone of overmind-private-memory; gitignored
-│                   #     ├── *.md     private top-level: appended when mounted
-│                   #     └── <topic>/ private nested: on-demand
-├── projects/       # active project work; gitignored. Memory repos NOT here.
-├── scripts/        # launcher, prompt assembler, shell integration
-└── .git-ignored/   # local-only scratch, caches, transient state
+├── AGENTS.md       # agent entry contract
+├── .agents/skills/ # Agent Skills (open standard)
+├── memory/         # *.md auto-loaded into the system prompt
+│   └── private/    # optional gitignored clone for personal context
+├── projects/       # active project work; gitignored
+├── tools/          # ts / py / bash scripts; validated in CI
+├── scripts/        # launcher + prompt assembler
+└── .git-ignored/   # local-only scratch; holds secrets.env
 ```
 
-## How it's used
+`tools/` is the home for executable scripts the agent can invoke —
+TypeScript (Bun), Python (uv), and Bash. CI lints, type-checks, and
+tests each language; see `tools/README.md` for the gates and how to
+add a script.
 
-| Component | Role |
-|-----------|------|
-| **`AGENTS.md`** | *Static* entry contract — repo identity, navigation rules, commit conventions, plus the registries of skills and operators. Does not change between sessions. |
-| **`.agents/skills/`** | Vendor-neutral [Agent Skills][agentskills] in the open-standard format (`<name>/SKILL.md` per skill). Gemini CLI auto-discovers via this path; Claude Code finds them through a single directory symlink (`.claude/skills` → `../.agents/skills`). One source of truth, no per-skill bridge files. |
-| **`memory/` (top-level)** | Public, evolutionary. Every `*.md` here is concatenated into the system prompt every session — workspace conventions worth surfacing on every turn (target ≤25 focused files). |
-| **`memory/<topic>/`** | Public, on-demand. Committed but *not* auto-loaded — agents navigate there when the topic is relevant. |
-| **`memory/private/`** | Documented mount point for a clone of the separate `overmind-private-memory` repo. Gitignored here. Top-level `*.md` is appended to the prompt when mounted; nested is on-demand. |
-| **`projects/`** | Active project work (external clones, submodules, in-tree prototypes). Gitignored by default. Memory repos do *not* live here. |
-| **`.git-ignored/`** | Transient state: agent scratchpads, downloaded artifacts, model outputs, partial logs. Nothing in here is ever pushed. |
-
-The system prompt is rebuilt each session via `scripts/build-system-prompt.sh`
-(`AGENTS.md` + top-level `memory/*.md` + top-level `memory/private/*.md`
-if mounted). The `/memory-reflect` and `/memory-defrag` skills evolve
-the public and private memory tiers over time.
+Workspace-scoped secrets live in `.git-ignored/secrets.env`. The
+launcher sources that file before exec'ing the backend, so values
+populate only inside `overmind` sessions and never reach version
+control. See [Workspace-scoped secrets](#workspace-scoped-secrets) for
+the full layout.
 
 ## Agent contract
 
