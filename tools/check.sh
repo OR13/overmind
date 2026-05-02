@@ -13,6 +13,7 @@ exclude_args=(
   -not -path './.venv/*'
   -not -path './.git/*'
   -not -path './dist/*'
+  -not -path './.specify/*'
 )
 
 count_files() {
