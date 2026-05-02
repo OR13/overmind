@@ -1,6 +1,6 @@
 ---
 name: active-context
-description: Short-lived public context the agent should keep in mind for current work — currently active initiatives, ongoing experiments, recent decisions worth surfacing on every turn. Replace freely; this file is meant to churn.
+description: Short-lived public context — a handoff artifact that lets a fresh session pick up active initiatives, ongoing experiments, and recent decisions. Surfaced on every turn; replace freely; this file is meant to churn.
 ---
 
 # Active context
