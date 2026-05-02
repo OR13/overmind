@@ -1,10 +1,10 @@
 ---
-description: Curate trending AI/agentic content and post hot takes to Bluesky and X.com. Searches web and platform feeds, generates analytical contrarian commentary, and publishes after user approval. Use when the user wants to post social media content about AI topics.
+description: Curate trending content matching the user's topic preferences and post hot takes to Bluesky and X.com. Searches web and platform feeds, drafts commentary in the user's configured voice, and publishes after explicit approval. Use when the user wants to post social media content.
 ---
 
 ## Content Curation & Posting
 
-Discover top content about AI product methodologies and agentic software development, generate an opinionated hot take, and post it with a link to the original source.
+Discover content matching the user's `topicKeywords` from preferences, draft a hot take in their configured `voice`, and post it with a link to the original source.
 
 **State directory:** `$OVERMIND_ROOT/.git-ignored/social-media/` — `OVERMIND_ROOT` must be set in your shell. See `knowledge/playbooks/social-media/README.md`.
 
@@ -52,22 +52,9 @@ Read preferences:
 cat $OVERMIND_ROOT/.git-ignored/social-media/preferences.json 2>/dev/null
 ```
 
-If the file doesn't exist, create it with defaults using Write tool:
+If the file doesn't exist, STOP and tell the user to run `/social-config` first to seed preferences and add at least one topic keyword. Do not proceed.
 
-```json
-{
-  "maxPostsPerDay": 2,
-  "preferredTimes": ["09:00", "17:00"],
-  "timezone": "America/Chicago",
-  "defaultPlatforms": ["bluesky", "xcom"],
-  "topicKeywords": [
-    "agentic software development",
-    "AI product methodology",
-    "human-agent collaboration",
-    "LLM tooling"
-  ]
-}
-```
+If the file exists but `topicKeywords` is empty AND `$ARGUMENTS` is also empty, STOP and tell the user to add keywords via `/social-config add keyword "..."` or pass a topic as an argument. Do not proceed.
 
 Read the post log for deduplication:
 
@@ -90,8 +77,8 @@ Read `maxPostsPerDay` from preferences. Count how many entries in post-log.json 
 
 Use the WebSearch tool to find recent, high-quality content. Run 2-3 searches with different query angles:
 
-1. Search for the primary topic keywords + current year (e.g., "agentic software development 2026")
-2. Search for a variation (e.g., "AI product methodology best practices")
+1. Search for the primary topic keyword(s) from preferences + current year (e.g., `<keyword> 2026`)
+2. Search for a variation that pairs a keyword with `best practices`, `analysis`, or `critique`
 3. If a specific topic was provided in `$ARGUMENTS`, search for that directly
 
 Collect the top results from each search. For each result, note the title, URL, and snippet.
@@ -167,11 +154,12 @@ If no qualifying candidates were found, report that no strong candidates were fo
 
 ### Step 8: Generate hot take drafts
 
-For the selected candidate, generate a hot take in an **analytical contrarian voice**:
-- Offer a respectful disagreement, a novel angle, or identify what the original content overlooks
-- Be insightful but opinionated — avoid bland summaries
+For the selected candidate, generate a hot take in the voice configured in preferences (`voice` field). Apply the voice description to the draft — it specifies the tone and stance to use.
+
+Universal rules regardless of voice:
 - Include a link to the original content
-- The tone should be professional but with conviction
+- Avoid bland summaries — the post should add a perspective, not just describe
+- Stay within character limits (see below)
 
 Generate TWO versions:
 

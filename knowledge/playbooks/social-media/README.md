@@ -70,12 +70,19 @@ The skills will warn and offer keyword-fallback if Ollama is not running.
 ```
 
 This creates `$OVERMIND_ROOT/.git-ignored/social-media/preferences.json`
-with defaults. Then:
+with neutral defaults (empty topic keywords, neutral voice, UTC timezone).
+You must add at least one keyword before `/post-content` or
+`/discover-accounts` will run:
 
 ```text
 /social-config add keyword "topic you want to post about"
-/social-config set frequency 2
+/social-config set timezone "America/New_York"
+/social-config set voice "deadpan observer; understated wit; never preachy"
 ```
+
+The `voice` field controls how `/post-content` drafts hot takes — keep
+it short and specific. Examples: `"analytical contrarian"`,
+`"earnest enthusiast"`, `"deadpan observer"`.
 
 ## State files
 
@@ -83,7 +90,7 @@ All under `$OVERMIND_ROOT/.git-ignored/social-media/`:
 
 | File | Contents |
 |------|----------|
-| `preferences.json` | Topic keywords, default platforms, posting cadence, timezone. |
+| `preferences.json` | Topic keywords, voice, default platforms, posting cadence, timezone. |
 | `post-log.json` | Append-only record of posts (URL, platforms, timestamp, post IDs). Used for dedup. |
 | `keep-list.json` | Accounts excluded from `/filter-follows` recommendations. |
 
@@ -98,3 +105,14 @@ so nothing here ever gets committed or pushed.
   Your handles, your topics, your post history, your keep list.
 - **Environment:** credentials live only in your shell profile; never in
   any committed file.
+
+## Known limitations
+
+- `/filter-follows` hardcodes its off-topic taxonomy as `politics`,
+  `sports`, and `sexual content`, with `business_tech` as the default
+  on-topic category. If you want to follow political or sports accounts
+  on purpose, add them to `keep-list.json` — or fork the skill and
+  rewrite the classifier prompt. The categories are not yet
+  configurable via `preferences.json`.
+- X.com posting requires copy-paste; the free API tier doesn't permit
+  programmatic tweets at sustainable volumes.

@@ -1,5 +1,5 @@
 ---
-description: Configure social media posting preferences — topic keywords, posting frequency, preferred times, default platforms. Use when the user wants to view or change social media skill settings.
+description: Configure social media posting preferences — topic keywords, voice, posting frequency, preferred times, default platforms. Use when the user wants to view or change social media skill settings.
 ---
 
 ## Social Media Configuration
@@ -38,16 +38,14 @@ If the file does not exist or is empty, create it with these defaults:
 {
   "maxPostsPerDay": 2,
   "preferredTimes": ["09:00", "17:00"],
-  "timezone": "America/Chicago",
+  "timezone": "UTC",
   "defaultPlatforms": ["bluesky", "xcom"],
-  "topicKeywords": [
-    "agentic software development",
-    "AI product methodology",
-    "human-agent collaboration",
-    "LLM tooling"
-  ]
+  "topicKeywords": [],
+  "voice": "Thoughtful and direct. Share what stood out and why; avoid bland summaries; professional but with conviction."
 }
 ```
+
+After seeding, tell the user that `topicKeywords` is empty and they need to add at least one before `/post-content` or `/discover-accounts` will work — show the `add keyword` subcommand example.
 
 Write the defaults using the Write tool to `$OVERMIND_ROOT/.git-ignored/social-media/preferences.json`.
 
@@ -69,6 +67,8 @@ Determine which operation the user wants:
 
 - **"remove keyword PHRASE"**: Remove the phrase from `topicKeywords` (if present). Write the updated JSON back.
 
+- **"set voice DESCRIPTION"**: Update `voice` to the provided string. The voice describes the tone and stance `/post-content` should use when drafting hot takes (e.g., "analytical contrarian", "earnest enthusiast", "deadpan observer"). Free-form — the more specific the description, the more consistent the output. Write the updated JSON back.
+
 ### 4. Write updated preferences
 
 After any modification, write the complete updated JSON object to `$OVERMIND_ROOT/.git-ignored/social-media/preferences.json` using the Write tool. Preserve all fields — only modify the one being changed.
@@ -88,3 +88,4 @@ If the subcommand is not recognized, show the available subcommands:
 - `/social-config set time HH:MM` — set preferred posting times
 - `/social-config add keyword "PHRASE"` — add a topic keyword
 - `/social-config remove keyword "PHRASE"` — remove a topic keyword
+- `/social-config set voice "DESCRIPTION"` — set the voice/tone for drafted posts

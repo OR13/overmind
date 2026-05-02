@@ -1,10 +1,10 @@
 ---
-description: Discover and follow high-value accounts on Bluesky and X.com that post about AI product methodologies and agentic software development. Use when the user wants to find new accounts to follow for technical content.
+description: Discover and follow high-value accounts on Bluesky and X.com that post about the user's configured topic keywords. Use when the user wants to find new accounts to follow.
 ---
 
 ## Account Discovery
 
-Find and suggest high-value accounts posting quality content about AI, agentic development, and related business/technical topics.
+Find and suggest high-value accounts posting content related to the user's `topicKeywords` from preferences.
 
 **State directory:** `$OVERMIND_ROOT/.git-ignored/social-media/` — `OVERMIND_ROOT` must be set in your shell. See `knowledge/playbooks/social-media/README.md`.
 
@@ -43,21 +43,17 @@ mkdir -p "${OVERMIND_ROOT:?OVERMIND_ROOT must point at your overmind clone — s
 cat "$OVERMIND_ROOT/.git-ignored/social-media/preferences.json" 2>/dev/null
 ```
 
-Extract `topicKeywords` for search queries. If preferences don't exist, use the defaults:
-- "agentic software development"
-- "AI product methodology"
-- "human-agent collaboration"
-- "LLM tooling"
+Extract `topicKeywords` for search queries. If preferences don't exist OR `topicKeywords` is empty, STOP and tell the user to run `/social-config add keyword "..."` first. Do not proceed.
 
 ### Step 4: Search for candidate accounts
 
 Use **WebSearch** to find prominent accounts/authors in the target topics:
 
-Search queries to try:
-- "best [platform] accounts to follow agentic software development"
-- "top [platform] accounts AI product methodology 2026"
-- "influential [platform] voices artificial intelligence engineering"
-- "[topic keyword] experts on [platform]"
+Search queries to try (substitute `[platform]` with bluesky/x.com and `[keyword]` with each entry from `topicKeywords`):
+- "best [platform] accounts to follow [keyword]"
+- "top [platform] accounts [keyword] 2026"
+- "influential [platform] voices [keyword]"
+- "[keyword] experts on [platform]"
 
 Use 3-4 searches with different angles. Collect account handles, names, and any context about why they're recommended.
 
@@ -105,12 +101,12 @@ curl -s -X GET "https://api.x.com/2/users/<USER_ID>/tweets?max_results=10&tweet.
 
 **Use Ollama (local LLM) for content verification to avoid consuming Claude tokens.**
 
-For each candidate, assess topic relevance by calling Ollama's local API with the `gemma2:2b` model:
+For each candidate, assess topic relevance by calling Ollama's local API with the `gemma2:2b` model. Substitute the user's `topicKeywords` (joined as a comma-separated list) into the prompt:
 
 ```bash
 curl -s http://localhost:11434/api/generate -d '{
   "model": "gemma2:2b",
-  "prompt": "What percentage of these posts are about technology, AI, software, or engineering? Return ONLY a number 0-100.\n\nPosts:\n1. <POST_1>\n2. <POST_2>\n...\n\nPercentage:",
+  "prompt": "What percentage of these posts are about any of: <TOPIC_KEYWORDS>? Return ONLY a number 0-100.\n\nPosts:\n1. <POST_1>\n2. <POST_2>\n...\n\nPercentage:",
   "stream": false
 }'
 ```
