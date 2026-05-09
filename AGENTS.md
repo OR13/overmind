@@ -142,6 +142,30 @@ demand. Likewise for nested directories under `memory/private/`.
 See `memory/context-repository.md` for the full convention and the
 `/memory-reflect` and `/memory-defrag` skills that evolve it.
 
+## MCP servers
+
+The launcher restricts each overmind session to a **workspace-scoped
+MCP allowlist**, isolated from whatever MCP servers the user has
+configured for plain `claude` / `gemini` sessions elsewhere on the
+machine.
+
+- Source of truth: `.git-ignored/overmind-mcp.json` (gitignored;
+  format is the standard `{ "mcpServers": { "<name>": { … } } }`
+  shape that `claude --mcp-config` accepts).
+- First launch creates an empty allowlist; populate it manually as
+  servers come online. Adding via `claude mcp add` / `gemini mcp add`
+  writes to user-scope config and won't reach overmind sessions —
+  edit `.git-ignored/overmind-mcp.json` instead.
+- Claude path applies `--mcp-config <file> --strict-mcp-config`, which
+  ignores all other MCP sources for the session.
+- Gemini path mirrors the same JSON to `.gemini/settings.json`
+  (project scope, also gitignored) and passes
+  `--allowed-mcp-server-names` to filter out user-scope servers.
+
+Both the allowlist file and the gemini mirror are gitignored, so the
+list of MCP servers wired up on any given machine stays out of the
+public repo's history.
+
 ## Commits
 
 - Keep commits small and topical.
