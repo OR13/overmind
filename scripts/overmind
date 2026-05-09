@@ -51,21 +51,62 @@ fi
 cd "$ROOT"
 PROMPT="$("$ROOT/scripts/build-system-prompt.sh")"
 
+# Workspace MCP allowlist — gitignored source of truth so the public repo
+# never sees which servers we've wired up. First-launch bootstrap creates
+# an empty allowlist; everything stays opt-in.
+MCP_CONFIG="$ROOT/.git-ignored/overmind-mcp.json"
+if [ ! -f "$MCP_CONFIG" ]; then
+        mkdir -p "$ROOT/.git-ignored"
+        printf '{"mcpServers":{}}\n' >"$MCP_CONFIG"
+fi
+
 case "$BACKEND" in
 claude)
-        exec claude --permission-mode auto --append-system-prompt "$PROMPT" "$@"
+        # --strict-mcp-config makes Claude ignore every other MCP source for
+        # this session: ~/.claude.json (user-scope + claude.ai connectors),
+        # plugin-installed servers, project .mcp.json. Only what's listed in
+        # MCP_CONFIG is connected. That gives overmind sessions a clean,
+        # workspace-defined toolbelt independent of the user's other claude
+        # configurations.
+        exec claude \
+                --permission-mode auto \
+                --append-system-prompt "$PROMPT" \
+                --mcp-config "$MCP_CONFIG" \
+                --strict-mcp-config \
+                "$@"
         ;;
 gemini)
-        # Gemini CLI has no --append-system-prompt; it auto-loads GEMINI.md from
-        # cwd. We regenerate that file on each launch so the dynamic memory/*.md
-        # tier (and private memory, if mounted) reaches Gemini the same way it
-        # reaches Claude. GEMINI.md is gitignored.
-        #
+        # Gemini CLI has no --append-system-prompt; it auto-loads GEMINI.md
+        # from cwd. We regenerate that file on each launch so the dynamic
+        # memory/*.md tier (and private memory, if mounted) reaches Gemini
+        # the same way it reaches Claude. GEMINI.md is gitignored.
+        printf '%s\n' "$PROMPT" >"$ROOT/GEMINI.md"
+
+        # Mirror MCP_CONFIG into a project-scope $ROOT/.gemini/settings.json
+        # so the same gitignored allowlist drives both backends. The .gemini/
+        # directory is gitignored. We then pass --allowed-mcp-server-names
+        # to ensure user-scope (~/.gemini/settings.json) servers with the
+        # same names don't sneak in — only the names from MCP_CONFIG are
+        # connected. If the allowlist is empty we pass a sentinel name that
+        # matches nothing, which keeps the flag well-formed and disables all.
+        mkdir -p "$ROOT/.gemini"
+        python3 -c '
+import json, sys
+src = json.load(open(sys.argv[1]))
+out = {"mcpServers": src.get("mcpServers", {})}
+json.dump(out, open(sys.argv[2], "w"), indent=2)
+print(" ".join(out["mcpServers"].keys()))
+' "$MCP_CONFIG" "$ROOT/.gemini/settings.json" >"$ROOT/.gemini/.allowed-names"
+        ALLOWED_NAMES="$(cat "$ROOT/.gemini/.allowed-names")"
+        if [ -z "$ALLOWED_NAMES" ]; then
+                ALLOWED_NAMES="__overmind_no_mcp__"
+        fi
+
         # --skip-trust marks the workspace trusted for the session so Gemini
         # auto-discovers project skills (.agents/skills/) and project hooks
         # without an interactive prompt. Symmetric to claude --permission-mode auto.
-        printf '%s\n' "$PROMPT" >"$ROOT/GEMINI.md"
-        exec gemini --skip-trust "$@"
+        # shellcheck disable=SC2086
+        exec gemini --skip-trust --allowed-mcp-server-names $ALLOWED_NAMES "$@"
         ;;
 *)
         echo "overmind: unknown backend '$BACKEND' (expected: claude or gemini)" >&2
