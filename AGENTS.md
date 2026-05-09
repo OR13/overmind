@@ -94,6 +94,33 @@ stomping on each other.
   `git -C projects/<name> worktree remove $OVERMIND_ROOT/.git-worktrees/<slug>`
   then `git -C projects/<name> worktree prune`.
 
+### Worktrees and pull requests (private repos)
+
+When the worktree is on a private repo, pair it 1:1 with a **draft** pull
+request so GitHub's PR list mirrors `.git-worktrees/` and a future review
+surfaces the original motivation. (Public repos already follow the
+"PRs only, no direct push to main" rule; this adds the draft + naming
+alignment on top.)
+
+- **One identifier, three places.** Pick one kebab-case slug and reuse
+  it as the worktree directory name, the feature branch name, and the
+  PR title. `gh pr list` and `ls $OVERMIND_ROOT/.git-worktrees/` then
+  read as the same list — easy to spot drift in either direction.
+- **Open the PR as a draft on first push.** Immediately after the
+  initial commit + `git push -u origin <slug>`, run
+  `gh pr create --draft --title "<slug>" --body "Why: <one-line motivation>"`.
+  Use the same "Why:" line in the worktree's first commit message —
+  that one line is what GitHub will remember when the PR resurfaces
+  weeks later.
+- **Stay draft until the work is actually done.** Never open a non-draft
+  PR for in-progress work; flip with `gh pr ready <slug>` only when the
+  branch is review-ready. GitHub blocks merging draft PRs through the
+  UI, which is the safety net against shipping WIP.
+- **Cleanup checks the PR first.** Before `git worktree remove`,
+  confirm the PR is merged or explicitly closed. An open draft with no
+  worktree on disk means cleanup ran too early — recreate the worktree
+  or close the PR before pruning, so the GitHub view stays truthful.
+
 ## Dynamic system prompt
 
 The launcher (`scripts/overmind`) concatenates this file plus top-level
